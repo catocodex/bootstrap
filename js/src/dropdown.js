@@ -371,33 +371,29 @@ class Dropdown extends BaseComponent {
 
     for (const toggle of toggles) {
       const context = Dropdown.getInstance(toggle)
-      if (!context || context._config.autoClose === false || !context._isShown()) {
+      if (!context || context._config.autoClose === false || !context._isShown() || !event) {
         continue
       }
 
-      const relatedTarget = {
-        relatedTarget: context._element
+      const relatedTarget = { relatedTarget: context._element }
+      const composedPath = event.composedPath()
+      const isMenuTarget = composedPath.includes(context._menu)
+
+      if (
+        composedPath.includes(context._element) ||
+        (context._config.autoClose === 'inside' && !isMenuTarget) ||
+        (context._config.autoClose === 'outside' && isMenuTarget)
+      ) {
+        continue
       }
 
-      if (event) {
-        const composedPath = event.composedPath()
-        const isMenuTarget = composedPath.includes(context._menu)
-        if (
-          composedPath.includes(context._element) ||
-          (context._config.autoClose === 'inside' && !isMenuTarget) ||
-          (context._config.autoClose === 'outside' && isMenuTarget)
-        ) {
-          continue
-        }
+      // Tab navigation through the dropdown menu or events from contained inputs shouldn't close the menu
+      if (context._menu.contains(event.target) && ((event.type === 'keyup' && event.key === TAB_KEY) || /input|select|option|textarea|form/i.test(event.target.tagName))) {
+        continue
+      }
 
-        // Tab navigation through the dropdown menu or events from contained inputs shouldn't close the menu
-        if (context._menu.contains(event.target) && ((event.type === 'keyup' && event.key === TAB_KEY) || /input|select|option|textarea|form/i.test(event.target.tagName))) {
-          continue
-        }
-
-        if (event.type === 'click') {
-          relatedTarget.clickEvent = event
-        }
+      if (event.type === 'click') {
+        relatedTarget.clickEvent = event
       }
 
       context._completeHide(relatedTarget)
