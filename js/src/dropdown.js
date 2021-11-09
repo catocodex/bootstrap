@@ -371,11 +371,7 @@ class Dropdown extends BaseComponent {
 
     for (const toggle of toggles) {
       const context = Dropdown.getInstance(toggle)
-      if (!context || context._config.autoClose === false) {
-        continue
-      }
-
-      if (!context._isShown()) {
+      if (!context || context._config.autoClose === false || !context._isShown()) {
         continue
       }
 
